@@ -45,7 +45,10 @@ interface DossierMemory {
   productions: Record<number, any>;
 }
 
-const dossiers: Record<string, DossierMemory> = {};
+// Objet SANS prototype : la clé vient de l'URL (« etudiant:session »). Sur un objet ordinaire,
+// une clé comme « __proto__ » modifierait Object.prototype pour tout le processus — c'est la
+// pollution de prototype relevée par l'analyse de sécurité statique.
+const dossiers: Record<string, DossierMemory> = Object.create(null);
 
 function getOrCreateDossier(etudiant: string, session: string): DossierMemory {
   const key = `${etudiant}:${session}`;
@@ -59,7 +62,9 @@ function getOrCreateDossier(etudiant: string, session: string): DossierMemory {
       statut: 'en_cours',
       quota_restant: 25,
       avancement: 8,
-      productions: {},
+      // Même précaution : les clés de production sont numériques, mais l'objet reste sans
+      // prototype pour qu'aucune clé inattendue ne puisse hériter d'un comportement.
+      productions: Object.create(null),
     };
   }
   return dossiers[key];
