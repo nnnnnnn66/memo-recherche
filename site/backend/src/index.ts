@@ -19,7 +19,13 @@ const app = express();
 // 1. Sécurité HTTP avec Helmet
 app.use(
   helmet({
-    contentSecurityPolicy: false, // Laisser le frontend gérer son CSP spécifique
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'self'"],
+      },
+    },
     crossOriginEmbedderPolicy: false,
   })
 );
