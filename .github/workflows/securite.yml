@@ -1,0 +1,53 @@
+# Analyse de sécurité automatique du code par GitHub (CodeQL) — gratuit sur un dépôt public.
+#
+# Ce qu'elle fait : à chaque modification poussée, GitHub analyse le code Python et
+# JavaScript/TypeScript, cherche les failles connues (injections, secrets exposés, dépendances
+# vulnérables) et publie les résultats dans l'onglet « Security » du dépôt.
+#
+# Elle complète Herozion : Herozion donne le score et le détail par catégorie, CodeQL donne
+# l'alerte permanente côté GitHub, avec la ligne exacte et un lien vers la règle concernée.
+name: "Analyse de sécurité"
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Une passe par semaine, pour détecter les failles publiées après coup (CVE).
+    - cron: "17 4 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  analyse:
+    name: Analyse (${{ matrix.langue }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - langue: python
+            build: none
+          - langue: javascript-typescript
+            build: none
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Préparer l'analyse
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.langue }}
+          build-mode: ${{ matrix.build }}
+
+      - name: Analyser
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.langue }}"
