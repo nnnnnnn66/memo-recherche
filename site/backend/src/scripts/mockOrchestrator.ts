@@ -280,7 +280,7 @@ const server = http.createServer(async (req, res) => {
         {
           id: 'doc-002',
           titre: 'Épistémologie et méthodologie de la recherche en sciences de gestion',
-          auteur: 'Koffi, N. & Collaborateurs',
+          auteur: 'Exemple, A. & Collaborateurs',
           annee: 2023,
           resume: 'Ouvrage de référence sur les protocoles qualitatifs et quantitatifs.',
           nom_fichier: 'epistemologie_sciences_gestion.pdf',
@@ -306,9 +306,9 @@ const server = http.createServer(async (req, res) => {
 
     // 8c. GET /dossiers/{etudiant}/{session}/bibliographie?format=bibtex
     if (method === 'GET' && subpath === '/bibliographie') {
-      const bibtexContent = `@article{koffi2024guide,
+      const bibtexContent = `@article{exemple2024guide,
   title={Guide méthodologique de rédaction du mémoire de Master LMD},
-  author={Koffi, Nahomie},
+  author={Exemple, A.},
   journal={Revue Universitaire de Recherche et Méthodologie},
   volume={12},
   number={1},

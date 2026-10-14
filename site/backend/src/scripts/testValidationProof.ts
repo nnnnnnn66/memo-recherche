@@ -114,14 +114,15 @@ async function runValidation() {
   let projectId = '';
   let etapeData: any = null;
   try {
-    const testEmail = `etudiant_koffi_${Date.now()}@univ-fhb.edu.ci`;
+    const testEmail = `etudiant_controle_${Date.now()}@exemple.test`;
     const registerRes = await rawFetch(`${API_BASE}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: testEmail,
-        password: 'MotDePasseSecurise2026!',
-        name: 'Nahomie Koffi',
+        // Mot de passe tiré au hasard à chaque exécution : aucun secret en dur dans le dépôt
+        password: `Ctrl-${Date.now()}-${Math.random().toString(36).slice(2)}!`,
+        name: 'Étudiant de contrôle',
       }),
     });
     const cookies = registerRes.headers.getSetCookie ? registerRes.headers.getSetCookie() : [registerRes.headers.get('set-cookie') || ''];

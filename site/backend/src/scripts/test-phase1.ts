@@ -34,7 +34,7 @@ async function runTests() {
 
     // 2. VÉRIFICATION UTILISATEUR & AUTHENTIFICATION
     console.log('\n[2/6] Vérification Authentification & Hachage des mots de passe');
-    const testEmail = `etudiant_test_${Date.now()}@univ-fhb.edu.ci`;
+    const testEmail = `etudiant_test_${Date.now()}@exemple.test`;
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash('PassSecurise2026!', salt);
     const user1 = await prisma.user.create({
