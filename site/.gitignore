@@ -1,0 +1,23 @@
+# Dépendances
+node_modules/
+npm-debug.log*
+
+# Secrets — JAMAIS versionnés
+.env
+.env.*
+!.env.example
+
+# Construits
+dist/
+build/
+
+# Données et journaux d'exécution
+*.log
+*.db
+*.sqlite
+logs/
+
+# Divers
+.DS_Store
+.idea/
+.vscode/

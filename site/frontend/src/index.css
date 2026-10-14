@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ivory: #FAF9F6;
+  --color-ivory-pure: #FFFFFF;
+  --color-ivory-card: #F5F3EF;
+
+  --color-oxford: #0B1221;
+  --color-oxford-dark: #060B14;
+  --color-oxford-surface: #151F33;
+  --color-oxford-border: #24324D;
+  --color-oxford-muted: #4A5B78;
+
+  --color-ochre: #B45309;
+  --color-ochre-hover: #92400E;
+  --color-ochre-light: #F59E0B;
+  --color-ochre-soft: #FEF3C7;
+
+  --font-serif: "Playfair Display", Lora, Georgia, serif;
+  --font-reading: Lora, Merriweather, Georgia, serif;
+  --font-sans: Figtree, Inter, system-ui, sans-serif;
+
+  --radius-sm: 0.125rem;
+  --radius-DEFAULT: 0.125rem;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    margin: 0;
+    background-color: #FAF9F6;
+    color: #0B1221;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+textarea.auto-grow {
+  field-sizing: content;
+  min-height: 3rem;
+  max-height: 14rem;
+  resize: none;
+}
+
+.academic-prose {
+  max-width: 72ch;
+  line-height: 1.75;
+  color: #0B1221;
+}
+
+.academic-prose h1,
+.academic-prose h2,
+.academic-prose h3,
+.academic-prose h4 {
+  font-family: var(--font-serif);
+  color: #0B1221;
+  font-weight: 600;
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+}
+
+.academic-prose p {
+  margin-bottom: 1em;
+  font-family: var(--font-reading);
+  font-size: 1.05rem;
+}
+
+.academic-prose blockquote {
+  border-left: 3px solid #B45309;
+  padding-left: 1rem;
+  margin-left: 0;
+  font-style: italic;
+  color: #4A5B78;
+}
+
+.academic-prose ul, .academic-prose ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1em;
+  font-family: var(--font-reading);
+}
+
+.academic-prose li {
+  margin-bottom: 0.35em;
+}
+
+.academic-prose code {
+  background-color: #F5F3EF;
+  padding: 0.15rem 0.35rem;
+  font-size: 0.9em;
+  border-radius: 2px;
+}

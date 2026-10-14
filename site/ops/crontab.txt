@@ -1,0 +1,6 @@
+# ==============================================================================
+# Tâche Cron pour la sauvegarde automatique de la base de données
+# Exécution chaque nuit à 02h30 UTC
+# ==============================================================================
+
+30 2 * * * /bin/bash /opt/memoire-recherche/ops/backup-mysql.sh >> /var/log/memoire-mysql-backup.log 2>&1

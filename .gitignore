@@ -1,0 +1,28 @@
+# Secrets — JAMAIS versionnés
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+
+# Dépendances et construits
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.venv/
+venv/
+**/__pycache__/
+*.pyc
+
+# Données d'exécution (comptes, mémoires, journaux)
+**/workspace/
+*.db
+*.sqlite
+*.log
+logs/
+
+# Divers
+.DS_Store
+.idea/
+.vscode/

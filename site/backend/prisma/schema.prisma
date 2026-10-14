@@ -1,0 +1,144 @@
+// ============================================================================
+//  Plateforme Mémoire de Recherche — Schéma relationnel (Agent 3)
+//  Politique ZÉRO PERTE :
+//   - aucune suppression physique : colonnes deleted_at (soft delete)
+//   - step_workspaces en append-only : chaque sauvegarde = nouvelle révision
+//   - clés étrangères ON DELETE RESTRICT (aucune cascade destructrice)
+//   - triggers MySQL bloquant DELETE (voir migration "zero_loss_guards")
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  active
+  suspended
+}
+
+enum ProjectStatus {
+  draft
+  in_progress
+  completed
+  archived
+}
+
+enum MessageRole {
+  student
+  guide
+}
+
+enum MessageStatus {
+  complete
+  interrupted
+  error
+}
+
+model User {
+  id           String     @id @default(cuid()) @db.VarChar(30)
+  name         String     @db.VarChar(120)
+  email        String     @unique @db.VarChar(190)
+  passwordHash String     @map("password_hash") @db.VarChar(255)
+  status       UserStatus @default(active)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  deletedAt    DateTime?  @map("deleted_at")
+
+  projects ResearchProject[]
+
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model ResearchProject {
+  id        String        @id @default(cuid()) @db.VarChar(30)
+  ownerId   String        @map("owner_id") @db.VarChar(30)
+  title     String        @db.VarChar(255)
+  domain    String        @db.VarChar(160)
+  status    ProjectStatus @default(draft)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  deletedAt DateTime?     @map("deleted_at")
+
+  owner      User                  @relation(fields: [ownerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  workspaces StepWorkspace[]
+  sessions   ConsultationSession[]
+
+  @@index([ownerId, deletedAt, updatedAt])
+  @@map("research_projects")
+}
+
+/// Référentiel des 9 étapes méthodologiques du mémoire
+model MethodologyStep {
+  id          Int    @id
+  position    Int    @unique
+  slug        String @unique @db.VarChar(60)
+  title       String @db.VarChar(120)
+  description String @db.Text
+  guidance    String @db.Text
+
+  workspaces StepWorkspace[]
+  sessions   ConsultationSession[]
+
+  @@map("methodology_steps")
+}
+
+/// Append-only : une ligne par révision, jamais d'UPDATE du contenu
+model StepWorkspace {
+  id        String    @id @default(cuid()) @db.VarChar(30)
+  projectId String    @map("project_id") @db.VarChar(30)
+  stepId    Int       @map("step_id")
+  revision  Int
+  content   String    @db.LongText
+  wordCount Int       @default(0) @map("word_count")
+  note      String?   @db.VarChar(255)
+  createdAt DateTime  @default(now()) @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  project ResearchProject @relation(fields: [projectId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  step    MethodologyStep @relation(fields: [stepId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([projectId, stepId, revision])
+  @@index([projectId, stepId, createdAt])
+  @@index([stepId])
+  @@map("step_workspaces")
+}
+
+model ConsultationSession {
+  id        String    @id @default(cuid()) @db.VarChar(30)
+  projectId String    @map("project_id") @db.VarChar(30)
+  stepId    Int?      @map("step_id")
+  title     String    @db.VarChar(255)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  project  ResearchProject       @relation(fields: [projectId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  step     MethodologyStep?      @relation(fields: [stepId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  messages ConsultationMessage[]
+
+  @@index([projectId, deletedAt, updatedAt])
+  @@index([stepId])
+  @@map("consultation_sessions")
+}
+
+model ConsultationMessage {
+  id        String        @id @default(cuid()) @db.VarChar(30)
+  sessionId String        @map("session_id") @db.VarChar(30)
+  role      MessageRole
+  content   String        @db.LongText
+  status    MessageStatus @default(complete)
+  engine    String?       @db.VarChar(60)
+  createdAt DateTime      @default(now()) @map("created_at")
+  deletedAt DateTime?     @map("deleted_at")
+
+  session ConsultationSession @relation(fields: [sessionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@map("consultation_messages")
+}

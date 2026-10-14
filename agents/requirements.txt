@@ -1,0 +1,18 @@
+# Agent Sujet V1 — dépendances (toutes libres, aucune payante)
+fastapi
+uvicorn[standard]
+pydantic>=2
+httpx
+python-dotenv
+pyyaml
+pytest
+pytest-asyncio
+# --- Agent Revue de littérature (étape 3) : lecture réelle du texte des PDF téléchargés ---
+# pdfminer.six — licence MIT, pur Python, aucune dépendance système (ni poppler, ni OCR).
+# Choisi après épreuve sur documents réels (arXiv, PLOS) : extraction fiable et rapide.
+pdfminer.six
+# --- Site web de la plateforme ---
+# jinja2 : gabarits HTML rendus côté serveur (licence BSD, aucune dépendance système).
+# python-multipart : lecture des formulaires HTML par FastAPI (licence Apache 2.0).
+jinja2
+python-multipart

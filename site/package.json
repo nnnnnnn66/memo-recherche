@@ -1,0 +1,29 @@
+{
+  "name": "memoire-recherche",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plateforme Mémoire de Recherche — accompagnement méthodologique des étudiants",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "db:up": "docker compose up -d mysql",
+    "db:down": "docker compose stop mysql",
+    "db:migrate": "npm run prisma:migrate -w backend",
+    "db:seed": "npm run prisma:seed -w backend",
+    "dev:backend": "npm run dev -w backend",
+    "dev:frontend": "npm run dev -w frontend",
+    "build": "npm run build -w backend && npm run build -w frontend",
+    "typecheck": "npm run typecheck -w backend && npm run typecheck -w frontend"
+  },
+  "allowScripts": {
+    "prisma@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "@prisma/client@6.19.3": true,
+    "esbuild@0.28.2": true
+  },
+  "dependencies": {
+    "@esbuild/linux-x64": "^0.28.2"
+  }
+}

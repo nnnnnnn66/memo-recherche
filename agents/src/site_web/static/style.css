@@ -1,0 +1,524 @@
+/* ============================================================================
+   Plateforme d'accompagnement méthodologique — système de design « papier & encre »
+   Surface : suivi (parcours) et décision (étape). Pas de page marketing, pas de héros.
+   Un seul accent, une seule police de titre, aucune dépendance externe.
+   ============================================================================ */
+
+:root {
+  /* Papier & encre — teintes chaudes, légèrement vertes : la page doit donner une impression de
+     calme et de sérieux, pas de « tableau de bord » froid. */
+  --papier:        #faf7f2;
+  --papier-creux:  #f3eee6;
+  --carte:         #ffffff;
+  --encre:         #14201c;
+  --encre-douce:   #3f4b45;
+  --encre-tenue:   #75817a;
+  --trait:         #e6dfd4;
+  --trait-fort:    #d3c9ba;
+
+  /* Deux couleurs qui donnent l'ambiance : un vert profond (la méthode, la rigueur) et une
+     terre cuite chaude (l'humain, l'étudiant). L'ocre reste RÉSERVÉ à « ce qu'on ne sait pas ». */
+  --accent:        #0b5d4b;
+  --accent-fonce:  #074537;
+  --accent-pale:   #e6f1ee;
+  --terre:         #b85c38;
+  --terre-pale:    #fbeee7;
+  --ocre:          #96631a;
+  --ocre-pale:     #fbf2e3;
+  --succes:        #17694a;
+  --succes-pale:   #e7f3ec;
+  --danger:        #92302c;
+  --danger-pale:   #fbeeed;
+
+  --serif: 'Fraunces', Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+  --sans: 'InterTight', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --r-s: 6px;
+  --r-m: 10px;
+  --r-l: 16px;
+
+  --ombre-1: 0 1px 2px rgba(20, 32, 28, .05);
+  --ombre-2: 0 2px 8px rgba(20, 32, 28, .07), 0 1px 2px rgba(20, 32, 28, .04);
+  --ombre-3: 0 12px 32px rgba(11, 93, 75, .10), 0 2px 8px rgba(20, 32, 28, .05);
+
+  --mesure: 68ch;
+  --large: 1140px;
+}
+
+/* Image de fond liée à la mission : des feuilles de mémoire, un parcours qui monte, un socle
+   documentaire, un motif tissé. TOUT EST SUR LES BORDS : le centre reste calme, c'est là qu'on
+   lit. Elle est fixe (elle ne défile pas) et se place DERRIÈRE les halos colorés. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image: url('illustrations/fond.svg');
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
+}
+@media (max-width: 760px) {
+  /* Sur téléphone, l'image est recadrée : on la garde discrète pour ne jamais gêner la lecture. */
+  body::after { opacity: .62; }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--papier);
+  color: var(--encre);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.55;
+  font-feature-settings: "kern" 1;
+  text-rendering: optimizeLegibility;
+  /* AMBIANCE : deux halos très doux (vert profond et terre cuite) qui donnent de la couleur à
+     toute la plateforme sans jamais gêner la lecture. Fixes : la page défile dessous. */
+  position: relative;
+  min-height: 100vh;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(64rem 40rem at 10% -10%, rgba(11, 93, 75, .20), transparent 60%),
+    radial-gradient(54rem 34rem at 94% 2%, rgba(184, 92, 56, .17), transparent 58%),
+    radial-gradient(78rem 44rem at 50% 110%, rgba(11, 93, 75, .13), transparent 64%);
+}
+
+h1, h2, h3 { font-family: var(--serif); font-weight: 600; line-height: 1.18; margin: 0; }
+h1 { font-size: clamp(1.9rem, 1.3rem + 2.2vw, 2.9rem); letter-spacing: -.015em; }
+h2 { font-size: 1.5rem; letter-spacing: -.01em; }
+h3 { font-size: 1.13rem; }
+p  { margin: 0 0 .85em; text-wrap: pretty; }
+a  { color: var(--accent); text-underline-offset: 3px; }
+a:hover { color: var(--accent-fonce); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* ---------- Ossature ---------- */
+.entete {
+  border-bottom: 1px solid var(--trait);
+  background: color-mix(in srgb, var(--papier) 88%, transparent);
+  backdrop-filter: saturate(1.2) blur(6px);
+  position: sticky; top: 0; z-index: 10;
+}
+/* Filet coloré : donne une identité à la plateforme dès le premier regard. */
+.entete::before {
+  content: '';
+  position: absolute; inset: 0 0 auto 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent) 42%, var(--terre) 72%,
+  var(--ocre) 100%);
+}
+.entete-in { max-width: var(--large); margin: 0 auto; padding: 0 24px;
+  display: flex; align-items: center; gap: 20px; min-height: 62px; }
+.marque { font-family: var(--serif); font-size: 1.14rem; font-weight: 600;
+  letter-spacing: -.01em; color: var(--encre); text-decoration: none; display: flex;
+  align-items: center; gap: 10px; }
+/* Emblème : un petit carré dégradé, vert → terre cuite. */
+.marque::before {
+  content: '';
+  width: 11px; height: 11px; border-radius: 3px; flex: none;
+  background: linear-gradient(135deg, var(--accent), var(--terre));
+}
+.marque span { color: var(--encre-tenue); font-family: var(--sans); font-size: .8rem;
+  font-weight: 500; letter-spacing: .02em; text-transform: uppercase; }
+.entete nav { margin-left: auto; display: flex; align-items: center; gap: 18px; }
+.entete nav a { color: var(--encre-douce); text-decoration: none; font-size: .92rem;
+  font-weight: 500; }
+.entete nav a:hover, .entete nav a.actif { color: var(--accent); }
+/* Un bouton RESTE un bouton : sans cette règle, la couleur des liens de navigation écrasait le
+   blanc du bouton, et « Créer mon accès » s'affichait en sombre sur fond vert (illisible). */
+.entete nav a.btn-principal { color: #fff; }
+.entete nav a.btn-principal:hover { color: #fff; }
+
+.page { max-width: var(--large); margin: 0 auto; padding: 40px 24px 96px; }
+.tete-page { display: flex; align-items: flex-end; gap: 24px; flex-wrap: wrap;
+  margin-bottom: 30px; }
+.tete-page .surtitre { font-size: .78rem; font-weight: 600; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--encre-tenue); margin: 0 0 6px; }
+.tete-page .actions { margin-left: auto; display: flex; gap: 10px; }
+
+/* ---------- Boutons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 10px 20px; border-radius: var(--r-m);
+  border: 1px solid transparent; font: inherit; font-weight: 600; font-size: .95rem;
+  cursor: pointer; text-decoration: none; transition: background .15s, border-color .15s,
+  transform .06s, color .15s;
+}
+.btn:active { transform: translateY(1px); }
+.btn-principal { background: var(--accent); color: #fff; }
+.btn-principal:hover { background: var(--accent-fonce); color: #fff; }
+.btn-secondaire { background: var(--carte); color: var(--encre); border-color: var(--trait-fort); }
+.btn-secondaire:hover { border-color: var(--encre-tenue); color: var(--encre); }
+.btn-discret { background: transparent; color: var(--encre-douce); padding: 8px 12px; }
+.btn-discret:hover { background: var(--papier-creux); color: var(--encre); }
+.btn-danger { background: var(--carte); color: var(--danger); border-color: #e3c6c4; }
+.btn-danger:hover { background: var(--danger-pale); }
+.btn[disabled], .btn.inerte { opacity: .5; pointer-events: none; }
+
+/* ---------- Cartes et encadrés ---------- */
+.carte { background: var(--carte); border: 1px solid var(--trait);
+  border-radius: var(--r-l); padding: 26px 28px; box-shadow: var(--ombre-1); }
+.carte + .carte { margin-top: 18px; }
+.grille { display: grid; gap: 18px; }
+.grille-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+.titre-section { display: flex; align-items: baseline; gap: 12px; margin: 0 0 14px; }
+.titre-section h2, .titre-section h3 { margin: 0; }
+.titre-section .compte { font-size: .8rem; font-weight: 600; color: var(--encre-tenue);
+  letter-spacing: .04em; }
+
+/* Encadré « ce que l'on ne sait pas » — ocre, jamais décoratif */
+.encadre { border-radius: var(--r-m); padding: 16px 18px; margin: 0 0 14px;
+  border: 1px solid var(--trait); background: var(--papier-creux); }
+.encadre > .etiquette { display: block; font-size: .76rem; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase; margin-bottom: 8px; }
+.encadre-inconnu { background: var(--ocre-pale); border-color: #ecd9b8; }
+.encadre-inconnu > .etiquette { color: var(--ocre); }
+.encadre-limite { background: var(--papier-creux); border-color: var(--trait-fort); }
+.encadre-limite > .etiquette { color: var(--encre-douce); }
+.encadre-verifie { background: var(--succes-pale); border-color: #c9e2d5; }
+.encadre-verifie > .etiquette { color: var(--succes); }
+.encadre-alerte { background: var(--danger-pale); border-color: #eccbc9; }
+.encadre-alerte > .etiquette { color: var(--danger); }
+.encadre ul { margin: 0; padding-left: 20px; }
+.encadre li + li { margin-top: 5px; }
+
+/* ---------- Fiches : une liste d'objets rendue lisible, jamais en titres répétés ---------- */
+.fiches { display: grid; gap: 12px; margin: 0 0 20px; }
+.fiche { border: 1px solid var(--trait); border-left: 3px solid var(--trait-fort);
+  border-radius: var(--r-m); padding: 14px 18px; background: var(--carte); }
+.fiche-titre { font-family: var(--serif); font-size: 1.05rem; font-weight: 600; margin: 0 0 8px; }
+.fiche-champs { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 5px 16px;
+  margin: 0; }
+.fiche-champs dt { font-size: .74rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--encre-tenue); padding-top: 2px; }
+.fiche-champs dd { margin: 0; }
+h4 { font-family: var(--sans); font-size: .78rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--encre-douce); margin: 20px 0 6px; }
+
+/* ---------- Pastilles d'état ---------- */
+.pastille { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px;
+  border-radius: 999px; font-size: .78rem; font-weight: 600; letter-spacing: .01em;
+  border: 1px solid var(--trait-fort); background: var(--papier-creux);
+  color: var(--encre-douce); white-space: nowrap; }
+.pastille::before { content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: currentColor; opacity: .75; }
+.pastille-validee { background: var(--succes-pale); border-color: #c9e2d5; color: var(--succes); }
+.pastille-attente { background: var(--accent-pale); border-color: #cfe3de; color: var(--accent); }
+.pastille-a-reviser { background: var(--danger-pale); border-color: #eccbc9; color: var(--danger); }
+.pastille-a-faire { background: var(--papier-creux); color: var(--encre-tenue); }
+.pastille-echec { background: var(--danger-pale); border-color: #eccbc9; color: var(--danger); }
+
+/* ---------- Le parcours : un SOMMAIRE, pas une grille de cartes ---------- */
+.sommaire { border-top: 1px solid var(--trait); }
+.etape-ligne { display: grid; grid-template-columns: 58px 1fr auto; gap: 18px;
+  align-items: center; padding: 18px 12px; border-bottom: 1px solid var(--trait);
+  text-decoration: none; color: inherit; transition: background .12s; }
+.etape-ligne:hover { background: var(--carte); }
+.etape-num { font-family: var(--serif); font-size: 1.5rem; font-weight: 400;
+  color: var(--encre-tenue); font-variant-numeric: lining-nums; }
+.etape-corps { min-width: 0; }
+.etape-titre { display: block; font-family: var(--serif); font-size: 1.1rem; font-weight: 600;
+  color: var(--encre); }
+.etape-note { display: block; font-size: .88rem; color: var(--encre-tenue); margin-top: 3px; }
+.etape-ligne.ouverte { background: var(--carte); box-shadow: var(--ombre-2);
+  border-left: 3px solid var(--accent); border-radius: var(--r-m); margin-bottom: 4px; }
+.etape-ligne.ouverte .etape-num { color: var(--accent); }
+/* Une étape validée se repère à la couleur, avant même de lire son étiquette. */
+.etape-ligne .pastille-validee ~ * ,
+.etape-ligne:has(.pastille-validee) .etape-num { color: var(--succes); }
+.etape-ligne:has(.pastille-a-reviser) { border-left: 3px solid var(--danger);
+  border-radius: var(--r-m); background: var(--danger-pale); }
+.etape-ligne.fermee { opacity: .62; }
+.etape-ligne.fermee .etape-titre { color: var(--encre-douce); }
+
+/* Progression : un simple filet qui avance */
+.avancement { display: flex; align-items: center; gap: 14px; margin: 0 0 22px; }
+.jauge { flex: 1; height: 4px; background: var(--trait); border-radius: 999px; overflow: hidden; }
+.jauge i { display: block; height: 100%; background: var(--accent); }
+.avancement b { font-family: var(--serif); font-weight: 600; }
+
+/* ---------- L'étape : deux colonnes, la note en marge ---------- */
+.etape-grille { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 32px;
+  align-items: start; }
+@media (max-width: 980px) { .etape-grille { grid-template-columns: 1fr; } }
+.proposition { max-width: var(--mesure); }
+.proposition h3 { margin: 26px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--trait); }
+.proposition h3:first-child { margin-top: 0; }
+.proposition ul { padding-left: 22px; }
+.marge { position: sticky; top: 86px; display: grid; gap: 14px; }
+.marge .encadre { margin: 0; }
+
+/* Décision */
+.decision { display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+  padding-top: 22px; margin-top: 28px; border-top: 1px solid var(--trait-fort); }
+.decision .aide { flex-basis: 100%; font-size: .88rem; color: var(--encre-tenue); margin: 0; }
+
+/* ---------- Formulaires ---------- */
+label { display: block; font-weight: 600; font-size: .9rem; margin: 0 0 6px; }
+.aide-champ { font-size: .84rem; color: var(--encre-tenue); margin: 4px 0 0; }
+input[type=text], input[type=email], input[type=password], textarea, select {
+  width: 100%; padding: 11px 13px; font: inherit; color: var(--encre);
+  background: var(--carte); border: 1px solid var(--trait-fort);
+  border-radius: var(--r-s); min-height: 44px; }
+textarea { min-height: 110px; resize: vertical; }
+input:focus, textarea:focus, select:focus { border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-pale); outline: none; }
+.champ + .champ { margin-top: 18px; }
+.form-actions { display: flex; gap: 12px; align-items: center; margin-top: 24px; }
+
+/* ---------- Messages ---------- */
+.message { border-radius: var(--r-m); padding: 13px 16px; margin: 0 0 18px;
+  border: 1px solid var(--trait-fort); background: var(--papier-creux); font-size: .94rem; }
+.message-erreur { background: var(--danger-pale); border-color: #eccbc9; color: var(--danger); }
+.message-succes { background: var(--succes-pale); border-color: #c9e2d5; color: var(--succes); }
+.message-info { background: var(--accent-pale); border-color: #cfe3de; color: var(--accent); }
+
+/* ---------- Connexion : sobre, centrée par la fonction, pas par goût ---------- */
+.connexion-page { min-height: 100vh; display: grid; place-items: center; padding: 32px 20px;
+  position: relative; overflow: hidden; }
+/* L'écran d'entrée est le seul qui a droit à une ambiance appuyée : deux halos colorés, et la
+   carte posée dessus comme une feuille de papier. */
+.connexion-page::before {
+  content: '';
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(38rem 26rem at 18% 12%, rgba(11, 93, 75, .22), transparent 60%),
+    radial-gradient(34rem 24rem at 84% 22%, rgba(184, 92, 56, .18), transparent 58%),
+    radial-gradient(40rem 28rem at 60% 96%, rgba(150, 99, 26, .12), transparent 62%);
+}
+.connexion-boite { width: 100%; max-width: 430px; position: relative; z-index: 1; }
+.connexion-boite .marque { margin-bottom: 26px; font-size: 1.3rem; }
+.connexion-intro { color: var(--encre-douce); margin: 0 0 26px; }
+.connexion-boite .carte { box-shadow: var(--ombre-3); border-color: rgba(11, 93, 75, .18); }
+.lien-retour { display: inline-block; margin-bottom: 16px; font-size: .85rem;
+  color: var(--encre-tenue); text-decoration: none; }
+.lien-retour:hover { color: var(--accent); }
+
+/* ============================================================================
+   PAGE D'ACCUEIL — publique. C'est la seule page qui « présente » la plateforme :
+   elle a droit à plus d'ampleur, jamais au vocabulaire d'une publicité.
+   ============================================================================ */
+.accueil-heros { border-bottom: 1px solid var(--trait); }
+.accueil-heros-in { max-width: var(--large); margin: 0 auto; padding: 76px 24px 68px;
+  display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr); gap: 52px;
+  align-items: center; }
+.accueil-heros-image { min-width: 0; }
+/* Toutes les illustrations : vectorielles, dans les couleurs de la plateforme, jamais une photo
+   générique. Elles restent nettes à toutes les tailles et ne pèsent que quelques kilo-octets. */
+.illustration { display: block; width: 100%; height: auto; }
+.accueil-illustre { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 34px;
+  align-items: center; }
+.accueil-illustration-laterale { max-width: 250px; }
+.accueil-illustre-inverse { display: grid; grid-template-columns: 230px minmax(0, 1fr);
+  gap: 34px; align-items: center; }
+.accueil-bande { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 36px; }
+.accueil-point-illustre { max-width: 46ch; }
+.accueil-point-illustre .illustration { max-width: 320px; margin-bottom: 20px; }
+.accueil-point-illustre h3 { margin-bottom: 8px; }
+.accueil-titre { font-size: clamp(2.1rem, 1.4rem + 3vw, 3.5rem); letter-spacing: -.02em;
+  margin: 10px 0 0; max-width: 22ch; }
+.accueil-chapeau { font-size: 1.1rem; color: var(--encre-douce); max-width: 62ch;
+  margin: 20px 0 0; text-wrap: pretty; }
+.accueil-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  margin-top: 30px; }
+
+.accueil-section { max-width: var(--large); margin: 0 auto; padding: 62px 24px 0; }
+.accueil-section > h2 { margin-bottom: 26px; }
+.accueil-duo { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px; }
+.accueil-duo-trois { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.accueil-etiquette { display: block; font-size: .76rem; font-weight: 700; letter-spacing: .09em;
+  text-transform: uppercase; margin-bottom: 14px; }
+.accueil-carte-fait .accueil-etiquette { color: var(--accent); }
+.accueil-carte-pasfait .accueil-etiquette { color: var(--terre); }
+.accueil-carte-fait { border-color: rgba(11, 93, 75, .22); }
+.accueil-carte-pasfait { border-color: rgba(184, 92, 56, .22); }
+.accueil-points { list-style: none; margin: 0; padding: 0; }
+.accueil-points li { padding: 9px 0 9px 22px; position: relative; border-bottom: 1px solid var(--trait); }
+.accueil-points li:last-child { border-bottom: 0; }
+.accueil-points li::before { content: ''; position: absolute; left: 0; top: 17px;
+  width: 7px; height: 7px; border-radius: 50%; }
+.accueil-carte-fait .accueil-points li::before { background: var(--accent); }
+.accueil-carte-pasfait .accueil-points li::before { background: var(--terre); }
+
+/* Le parcours, présenté comme un sommaire — deux colonnes sur grand écran. */
+.accueil-etapes { list-style: none; margin: 0; padding: 0;
+  columns: 2; column-gap: 44px; }
+.accueil-etapes li { display: flex; gap: 14px; align-items: baseline; padding: 11px 0;
+  border-bottom: 1px solid var(--trait); break-inside: avoid; }
+.accueil-etapes .etape-num { color: var(--accent); font-size: 1.15rem; min-width: 26px; }
+
+.accueil-fin { max-width: var(--large); margin: 70px auto 0; padding: 56px 24px;
+  border-top: 1px solid var(--trait); text-align: center; }
+.accueil-fin h2 { font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.3rem); }
+
+@media (max-width: 900px) {
+  .accueil-heros-in { grid-template-columns: 1fr; gap: 34px; padding: 48px 18px 44px; }
+  .accueil-heros-image { order: -1; max-width: 420px; }
+  .accueil-illustre, .accueil-illustre-inverse { grid-template-columns: 1fr; gap: 26px; }
+  .accueil-illustration-laterale { max-width: 220px; margin: 0 auto; }
+}
+@media (max-width: 760px) {
+  .accueil-etapes { columns: 1; }
+}
+
+/* ============================================================================
+   COQUILLE D'APPLICATION — barre latérale persistante + volet de contenu.
+   Inspirée des meilleurs outils (Linear, Notion) : le parcours EST la navigation.
+   ============================================================================ */
+.marque-logo { width: 27px; height: 27px; border-radius: 7px; display: block; flex: none; }
+.entete-bandeau { height: 58px; overflow: hidden; }
+.entete-bandeau img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.coquille { max-width: 1420px; margin: 0 auto; display: grid;
+  grid-template-columns: 274px minmax(0, 1fr); align-items: start; }
+.coquille .page { padding-top: 34px; }
+
+.laterale { position: sticky; top: 132px; align-self: start; max-height: calc(100vh - 150px);
+  overflow-y: auto; padding: 22px 16px 44px 8px; border-right: 1px solid var(--trait); }
+.laterale-entete { display: flex; align-items: center; gap: 14px; padding: 0 8px 18px;
+  border-bottom: 1px solid var(--trait); margin-bottom: 18px; }
+.anneau { width: 52px; height: 52px; flex: none; transform: rotate(-90deg); }
+.anneau-fond { fill: none; stroke: var(--trait); stroke-width: 4; }
+.anneau-jauge { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+.laterale-avancement b { display: block; font-family: var(--serif); font-size: 1.25rem;
+  line-height: 1.1; }
+.laterale-avancement b span { color: var(--encre-tenue); font-size: .9rem; }
+.laterale-avancement > span { font-size: .78rem; color: var(--encre-tenue); }
+
+.laterale-section { margin-bottom: 24px; }
+.laterale-titre { font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--encre-tenue); margin: 0 0 8px 10px; }
+.laterale-etapes { list-style: none; margin: 0; padding: 0; counter-reset: etape; }
+.laterale-etape { display: flex; gap: 11px; align-items: center; padding: 8px 10px;
+  border-radius: var(--r-m); text-decoration: none; color: var(--encre-douce); font-size: .9rem;
+  transition: background .14s, color .14s; }
+.laterale-puce { font-family: var(--serif); font-size: .95rem; color: var(--encre-tenue);
+  min-width: 18px; text-align: right; flex: none; }
+.laterale-libelle { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+a.laterale-etape:hover { background: var(--papier-creux); color: var(--encre); }
+.laterale-etape.faite .laterale-puce { color: var(--succes); }
+.laterale-etape.faite { color: var(--encre-douce); }
+.laterale-etape.ouverte { background: var(--accent-pale); color: var(--accent);
+  font-weight: 600; box-shadow: inset 3px 0 0 var(--accent); }
+.laterale-etape.ouverte .laterale-puce { color: var(--accent); }
+.laterale-etape.fermee { opacity: .55; cursor: default; }
+
+.laterale-item { display: block; padding: 8px 10px; border-radius: var(--r-m);
+  text-decoration: none; color: var(--encre-douce); font-size: .9rem; }
+.laterale-item:hover { background: var(--papier-creux); color: var(--encre); }
+.laterale-item.actif { background: var(--accent-pale); color: var(--accent); font-weight: 600; }
+
+.bascule-laterale { display: none; width: 40px; height: 40px; border-radius: var(--r-m);
+  border: 1px solid var(--trait-fort); background: var(--carte); color: var(--encre);
+  font-size: 1.05rem; cursor: pointer; align-items: center; justify-content: center; flex: none; }
+.voile-laterale { display: none; }
+
+/* Recherche rapide (palette de commandes) */
+.chercheur { display: inline-flex; align-items: center; gap: 9px; margin-left: auto;
+  padding: 7px 12px; border-radius: 999px; border: 1px solid var(--trait);
+  background: var(--papier-creux); color: var(--encre-tenue); font: inherit; font-size: .86rem;
+  cursor: pointer; }
+.chercheur:hover { border-color: var(--trait-fort); color: var(--encre-douce); }
+.chercheur kbd { background: var(--carte); border: 1px solid var(--trait-fort);
+  border-radius: 4px; padding: 0 5px; font-size: .72rem; font-family: var(--sans); }
+.chercheur + nav { margin-left: 16px; }
+
+.palette { position: fixed; inset: 0; z-index: 60; background: rgba(20, 32, 28, .34);
+  display: grid; place-items: start center; padding-top: 11vh; }
+/* L'attribut `hidden` doit gagner : sans cette règle, le `display: grid` ci-dessus rend la
+   palette VISIBLE en permanence (défaut vu à l'écran). */
+.palette[hidden] { display: none; }
+.palette-boite { width: min(580px, 92vw); background: var(--carte); border-radius: var(--r-l);
+  border: 1px solid var(--trait); box-shadow: var(--ombre-3); overflow: hidden; }
+.palette-boite input { border: 0; border-bottom: 1px solid var(--trait); border-radius: 0;
+  font-size: 1.05rem; padding: 18px 20px; }
+.palette-boite input:focus { box-shadow: none; border-color: var(--accent); }
+.palette-liste { max-height: 54vh; overflow-y: auto; }
+.palette-entree { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 14px;
+  align-items: center; padding: 12px 20px; text-decoration: none; color: var(--encre);
+  border-bottom: 1px solid var(--trait); font-size: .93rem; }
+.palette-entree:last-child { border-bottom: 0; }
+.palette-entree.choisie, .palette-entree:hover { background: var(--accent-pale); }
+.palette-num { font-family: var(--serif); color: var(--accent); text-align: right; }
+.palette-etat { font-size: .72rem; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--encre-tenue); }
+
+/* Apparition douce : la classe .js n'est posée que si le script s'exécute, donc sans
+   JavaScript le contenu reste VISIBLE (pas de page vide). */
+.js [data-apparait] { opacity: 0; transform: translateY(14px);
+  transition: opacity .55s cubic-bezier(.22,.61,.36,1), transform .55s cubic-bezier(.22,.61,.36,1); }
+.js [data-apparait].visible { opacity: 1; transform: none; }
+
+.message { position: relative; }
+.message-fermer { position: absolute; top: 8px; right: 10px; border: 0; background: transparent;
+  font-size: 1.2rem; line-height: 1; color: currentColor; opacity: .55; cursor: pointer; }
+.message-fermer:hover { opacity: 1; }
+.compteur { text-align: right; }
+
+@media (max-width: 1040px) {
+  .coquille { grid-template-columns: 1fr; }
+  .bascule-laterale { display: inline-flex; }
+  .chercheur { display: none; }
+  .laterale { position: fixed; top: 0; bottom: 0; left: 0; width: 292px; z-index: 45;
+    max-height: none; background: var(--papier); border-right: 1px solid var(--trait-fort);
+    padding: 22px 16px 44px; transform: translateX(-103%);
+    transition: transform .28s cubic-bezier(.22,.61,.36,1); box-shadow: none; }
+  body.laterale-ouverte .laterale { transform: none; box-shadow: var(--ombre-3); }
+  body.laterale-ouverte .voile-laterale { display: block; position: fixed; inset: 0; z-index: 40;
+    background: rgba(20, 32, 28, .38); }
+}
+
+/* ---------- Tableau de bord et cartes ---------- */
+.grille-3 { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.carte-action { border-color: rgba(11, 93, 75, .22); background: linear-gradient(160deg,
+  var(--carte) 0%, var(--accent-pale) 100%); }
+.carte-action-num { font-size: .78rem; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--accent); margin: 0 0 4px; }
+.carte-lien { display: block; text-decoration: none; color: inherit; transition: transform .18s,
+  box-shadow .18s, border-color .18s; }
+.carte-lien:hover { transform: translateY(-2px); box-shadow: var(--ombre-2);
+  border-color: var(--trait-fort); }
+.carte-lien h3 { margin-bottom: 6px; }
+.carte-lien-image { max-width: 150px; margin: 0 0 16px; }
+
+/* ---------- Divers ---------- */
+.pied { border-top: 1px solid var(--trait); margin-top: 60px; padding: 22px 24px;
+  color: var(--encre-tenue); font-size: .84rem; text-align: center; }
+.vide { text-align: center; padding: 54px 20px; color: var(--encre-tenue); }
+.vide h3 { color: var(--encre-douce); margin-bottom: 6px; }
+.mono { font-variant-numeric: tabular-nums; }
+.liste-nette { list-style: none; margin: 0; padding: 0; }
+.liste-nette li { padding: 12px 0; border-bottom: 1px solid var(--trait); display: flex;
+  gap: 14px; align-items: baseline; }
+.liste-nette li:last-child { border-bottom: 0; }
+.liste-nette .quand { margin-left: auto; color: var(--encre-tenue); font-size: .85rem;
+  white-space: nowrap; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+@media (max-width: 720px) {
+  .page { padding: 26px 16px 70px; }
+  .etape-ligne { grid-template-columns: 42px 1fr; }
+  .etape-ligne .pastille { grid-column: 2; justify-self: start; }
+}

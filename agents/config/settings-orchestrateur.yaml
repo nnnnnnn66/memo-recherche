@@ -1,0 +1,367 @@
+# Orchestrateur V1 — configuration PROPRE à cette pièce.
+# (Aucun secret ici : les clés vivent uniquement dans ~/.hermes/.env.)
+
+transport:
+  # http   : l'orchestrateur appelle les agents comme des SERVICES (127.0.0.1:port) — usage réel.
+  # direct : le pipeline de l'agent est importé dans le processus — utilisé par les tests
+  #          hors réseau (un agent simulé remplace l'appel HTTP).
+  mode: http
+  hote: 127.0.0.1
+  # La revue de littérature télécharge et LIT des PDF : une campagne peut durer longtemps.
+  timeout: 1800
+
+quota:
+  # Nombre d'analyses qu'un étudiant peut lancer par jour. Protection du solde LLM du porteur :
+  # sans quota, une plateforme ouverte épuise le portefeuille en quelques heures.
+  #
+  # 2026-10-13 : élevé de 20 à 25, TEMPORAIREMENT et à la demande expresse du porteur, pour livrer
+  # le protocole de son mémoire. Les relances successives d'une même étape (défauts réels trouvés
+  # en exécution) avaient consommé les 20 analyses, bloquant l'étape 9 à une étape du but.
+  # À réviser une fois le parcours stabilisé : la valeur de fond reste une décision du porteur.
+  analyses_par_jour: 25
+
+parcours:
+  # CONSIGNE DU PORTEUR (2026-10-13) : « je ne veux pas qu'il attende ma validation, ils seront en
+  # ligne, donc ils doivent être indépendants […] qu'ils soient rapides et autonomes. »
+  #
+  # `automatique` : une étape produite ET VÉRIFIÉE par son propre vérificateur ouvre la suivante
+  #   sans attendre personne. La plateforme avance seule, en ligne.
+  # `humaine`     : chaque étape attend une décision avant la suivante (l'ancien comportement).
+  #
+  # CONSÉQUENCE, ÉCRITE ICI POUR NE PAS SE PERDRE : en mode automatique, le verdict du vérificateur
+  # INDÉPENDANT devient la seule barrière de qualité. Le statut « validée » ne signifie plus
+  # « approuvée par l'étudiant » mais « produite et vérifiée ». La décision humaine reste POSSIBLE
+  # à tout moment (le site peut demander une révision) : elle n'est plus OBLIGATOIRE.
+  validation: automatique
+
+paths:
+  workspace: workspace                      # workspace/<etudiant>/<session>/
+  state_db: workspace/orchestrateur.db      # état des dossiers (SQLite stdlib)
+
+# Champs de BASE transmis à chaque agent, en plus des sorties amont.
+# Règle : on ne devine JAMAIS un champ. Cette liste est explicite parce que plusieurs agents
+# refusent les champs inconnus (`extra=forbid`) : envoyer un champ non déclaré ferait échouer
+# l'étape. `subject_text` vient du sujet du dossier ; les autres sont lus dans le contexte fourni
+# à la création du dossier (discipline, pays, période…).
+base:
+  - student_id
+  - session_id
+  - subject_text
+  - research_problem
+  - discipline
+  - academic_level
+  - country
+  - geographical_scope
+  - period
+
+# ORDRE DU PARCOURS (source de vérité) et PONT ENTRE ÉTAPES.
+# `upstream` : champ attendu par l'agent  ←  numéro de l'étape dont on reprend la SORTIE RÉELLE.
+# Jamais de payload fabriqué à la main : on ne transmet que ce qu'une étape a réellement produit.
+etapes:
+  - numero: 1
+    agent: subject_agent
+    libelle: "Sujet"
+    resume: "Tu précises ton sujet : son intitulé, son domaine, et ce qu'il laisse de côté."
+    port: 8010
+    prefixe: /subject
+    route_analyse: /subject/analyze
+    route_question: /subject/question
+    # {notre clé → nom attendu par CET agent}. Les champs absents ne sont pas envoyés : ils sont
+    # recopiés dans `contexte_libre` avec leur intitulé, pour ne rien perdre.
+    champs:
+      student_id: student_id
+      session_id: session_id
+      subject_text: subject_text
+      discipline: discipline
+      academic_level: academic_level
+      country: country
+    contexte_libre: student_context
+    upstream: {}
+
+  - numero: 2
+    agent: research_problem_agent
+    libelle: "Problème de recherche"
+    resume: "Tu identifies le problème concret dont ta recherche part."
+    port: 8020
+    prefixe: /problem
+    route_analyse: /problem/analyze
+    route_question: /problem/question
+    # Cet agent ne connaît ni `geographical_scope` ni `period` : la zone et la période partent donc
+    # dans son champ de contexte libre, avec leur intitulé lisible.
+    champs:
+      student_id: student_id
+      session_id: session_id
+      subject_text: subject_text
+      discipline: discipline
+      academic_level: academic_level
+      country: country
+    contexte_libre: subject_context
+    upstream:
+      upstream_subject: 1
+
+  - numero: 3
+    agent: literature_review_agent
+    libelle: "Revue de littérature"
+    resume: "Tu rassembles les travaux existants sur ton sujet et tu les organises."
+    port: 8030
+    prefixe: /literature
+    route_analyse: /literature/review
+    route_question: /literature/question
+    champs:
+      student_id: student_id
+      session_id: session_id
+      subject_text: subject_text
+      research_problem: research_problem
+      discipline: discipline
+      academic_level: academic_level
+      country: country
+      geographical_scope: geographical_scope
+      period: period
+    contexte_libre: constraints
+    upstream:
+      upstream_subject: 1
+      upstream_problem: 2
+
+  - numero: 4
+    agent: problematization_agent
+    libelle: "Problématique"
+    resume: "Tu construis l'angle sous lequel tu vas traiter ce problème."
+    port: 8040
+    prefixe: /problematique
+    route_analyse: /problematique/analyze
+    route_question: /problematique/question
+    champs:
+      student_id: student_id
+      session_id: session_id
+      subject_text: subject_text
+      research_problem: research_problem
+      discipline: discipline
+      academic_level: academic_level
+      country: country
+      geographical_scope: geographical_scope
+      period: period
+    contexte_libre: student_notes
+    upstream:
+      upstream_subject: 1
+      upstream_problem: 2
+      upstream_literature: 3
+
+  - numero: 5
+    agent: research_question_agent
+    libelle: "Question de recherche"
+    resume: "Tu formules la question à laquelle ton mémoire répondra."
+    port: 8050
+    prefixe: /question
+    route_analyse: /question/analyze
+    route_question: /question/question
+    # NOM DIVERGENT, traduit ici : cet agent nomme la zone `geographical_area` et la période
+    # `study_period`. Sans cette table, l'orchestrateur lui enverrait `geographical_scope` et
+    # `period` — qu'il refuse — et l'étape échouerait en 422.
+    champs:
+      student_id: student_id
+      session_id: session_id
+      subject_text: subject_text
+      research_problem: research_problem
+      discipline: discipline
+      academic_level: academic_level
+      country: country
+      geographical_scope: geographical_area
+      period: study_period
+    contexte_libre: constraints
+    upstream:
+      upstream_subject: 1
+      upstream_problem: 2
+      upstream_problematic: 4
+
+  - numero: 6
+    agent: research_objectives_agent
+    libelle: "Objectifs"
+    resume: "Tu énonces ce que ta recherche cherche à atteindre."
+    port: 8060
+    prefixe: /objectives
+    route_analyse: /objectives/analyze
+    route_question: /objectives/question
+    champs:
+      student_id: student_id
+      session_id: session_id
+      subject_text: subject_text
+      research_problem: research_problem
+      discipline: discipline
+      academic_level: academic_level
+      country: country
+      geographical_scope: geographical_area
+      period: study_period
+    contexte_libre: research_context
+    upstream:
+      upstream_subject: 1
+      upstream_problem: 2
+      upstream_problematic: 4
+      upstream_question: 5
+
+  - numero: 7
+    agent: research_hypotheses_agent
+    libelle: "Hypothèses"
+    resume: "Tu formules les réponses provisoires que tes données viendront éprouver."
+    port: 8070
+    prefixe: /hypotheses
+    route_analyse: /hypotheses/analyze
+    route_question: /hypotheses/question
+    champs:
+      student_id: student_id
+      session_id: session_id
+      subject_text: subject_text
+      research_problem: research_problem
+      discipline: discipline
+      academic_level: academic_level
+      country: country
+      geographical_scope: geographical_area
+      period: study_period
+    contexte_libre: research_context
+    upstream:
+      upstream_subject: 1
+      upstream_problem: 2
+      upstream_problematic: 4
+      upstream_question: 5
+      upstream_objectives: 6
+
+  - numero: 8
+    agent: methodology_diagnostic_agent
+    libelle: "Orientation méthodologique"
+    resume: "Tu choisis ta démarche : qualitative, quantitative, ou les deux."
+    port: 8080
+    prefixe: /methodology
+    route_analyse: /methodology/analyze
+    route_question: /methodology/question
+    champs:
+      student_id: student_id
+      session_id: session_id
+      subject_text: subject_text
+      research_problem: research_problem
+      discipline: discipline
+      academic_level: academic_level
+      country: country
+      geographical_scope: geographical_area
+      period: study_period
+    contexte_libre: research_context
+    upstream:
+      upstream_subject: 1
+      upstream_problem: 2
+      upstream_problematic: 4
+      upstream_question: 5
+      upstream_objectives: 6
+      upstream_hypotheses: 7
+
+  - numero: 9
+    agent: methodology_agent
+    libelle: "Méthodologie"
+    resume: "Tu décris ton terrain, ton échantillon et tes outils de collecte."
+    port: 8090
+    prefixe: /methodology/protocol
+    route_analyse: /methodology/protocol/analyze
+    route_question: /methodology/question
+    champs:
+      student_id: student_id
+      session_id: session_id
+      subject_text: subject_text
+      research_problem: research_problem
+      discipline: discipline
+      academic_level: academic_level
+      country: country
+      geographical_scope: geographical_area
+      period: study_period
+    contexte_libre: research_context
+    upstream:
+      upstream_subject: 1
+      upstream_problem: 2
+      upstream_literature: 3
+      upstream_problematic: 4
+      upstream_question: 5
+      upstream_objectives: 6
+      upstream_hypotheses: 7
+      upstream_methodology_diagnostic: 8
+
+  - numero: 10
+    agent: research_results_analysis_agent
+    libelle: "Résultats et analyse"
+    resume: "Tu présentes et interprètes ce que tes données ont donné."
+    port: 8100
+    prefixe: /results
+    route_analyse: /results/analyze
+    route_question: /results/question
+    champs:
+      student_id: student_id
+      session_id: session_id
+      subject_text: subject_text
+      discipline: discipline
+      academic_level: academic_level
+    contexte_libre: collection_notes
+    upstream:
+      upstream_subject: 1
+      upstream_problem: 2
+      upstream_literature: 3
+      upstream_problematic: 4
+      upstream_question: 5
+      upstream_objectives: 6
+      upstream_hypotheses: 7
+      upstream_methodology_diagnostic: 8
+      upstream_methodology: 9
+
+  # Étape 13 : vérification GLOBALE de la cohérence du dossier (étapes 1 à 10).
+  # ORDRE VOULU PAR LE PORTEUR : la vérification vient AVANT la conclusion — on s'assure d'abord
+  # que le dossier tient debout, PUIS on rédige la conclusion. Conséquence assumée : elle n'audite
+  # plus la conclusion, qui n'existe pas encore à ce moment-là.
+  - numero: 13
+    agent: research_coherence_verifier
+    libelle: "Vérification globale de la cohérence"
+    resume: "Tu vérifies que tout ton dossier tient debout, d'un bout à l'autre."
+    port: 8130
+    prefixe: /coherence
+    route_analyse: /coherence/audit
+    route_question: /coherence/question
+    champs:
+      student_id: student_id
+      session_id: session_id
+      subject_text: subject_text
+      discipline: discipline
+      academic_level: academic_level
+    contexte_libre: student_comments
+    upstream:
+      upstream_subject: 1
+      upstream_problem: 2
+      upstream_literature: 3
+      upstream_problematic: 4
+      upstream_question: 5
+      upstream_objectives: 6
+      upstream_hypotheses: 7
+      upstream_methodology_diagnostic: 8
+      upstream_methodology: 9
+      upstream_results: 10
+
+  # Dernière étape : la conclusion s'appuie désormais sur un dossier VÉRIFIÉ.
+  - numero: 11
+    agent: research_conclusion_agent
+    libelle: "Conclusion"
+    resume: "Tu réponds à ta question de recherche et tu ouvres sur la suite."
+    port: 8110
+    prefixe: /conclusion
+    route_analyse: /conclusion/write
+    route_question: /conclusion/question
+    champs:
+      student_id: student_id
+      session_id: session_id
+      subject_text: subject_text
+      discipline: discipline
+      academic_level: academic_level
+    contexte_libre: student_comments
+    finale: true
+    upstream:
+      upstream_subject: 1
+      upstream_problem: 2
+      upstream_literature: 3
+      upstream_problematic: 4
+      upstream_question: 5
+      upstream_objectives: 6
+      upstream_hypotheses: 7
+      upstream_methodology_diagnostic: 8
+      upstream_methodology: 9
+      upstream_results: 10
