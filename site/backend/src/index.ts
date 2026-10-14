@@ -19,8 +19,21 @@ const app = express();
 // 1. Sécurité HTTP avec Helmet
 app.use(
   helmet({
-    contentSecurityPolicy: false, // Laisser le frontend gérer son CSP spécifique
+    // CSP propre à une API : ce serveur ne rend AUCUNE page, il ne renvoie que du JSON.
+    // « default-src 'none' » est donc le réglage le plus strict possible — et non l'absence de
+    // réglage. Désactiver la CSP laissait le navigateur appliquer sa politique par défaut
+    // (alerte js/insecure-helmet-configuration).
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+        baseUri: ["'none'"],
+        formAction: ["'none'"],
+      },
+    },
     crossOriginEmbedderPolicy: false,
+    // L'API n'est consommée que par le site : inutile d'exposer d'autres politiques.
+    crossOriginResourcePolicy: { policy: 'same-site' },
   })
 );
 

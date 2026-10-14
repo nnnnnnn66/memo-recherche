@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 // ============================================================================
 //  Protocole de Preuve Brute d'Exécution Réelle (7 Critères d'Acceptation)
 //
@@ -121,7 +122,9 @@ async function runValidation() {
       body: JSON.stringify({
         email: testEmail,
         // Mot de passe tiré au hasard à chaque exécution : aucun secret en dur dans le dépôt
-        password: `Ctrl-${Date.now()}-${Math.random().toString(36).slice(2)}!`,
+        // randomUUID() : source cryptographique, jamais Math.random() (deviner un mot de passe
+        // de test reste une mauvaise habitude — alerte js/insecure-randomness)
+        password: `Ctrl-${randomUUID()}!`,
         name: 'Étudiant de contrôle',
       }),
     });
